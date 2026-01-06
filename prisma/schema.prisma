@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Recording {
+  id            String   @id @default(cuid())
+  filename      String
+  filePath      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  transcription Transcription?
+  soapNote      SoapNote?
+}
+
+model Transcription {
+  id          String   @id @default(cuid())
+  recordingId String   @unique
+  recording   Recording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  text        String   @db.Text
+  createdAt   DateTime @default(now())
+  
+  summary     Summary?
+}
+
+model Summary {
+  id             String   @id @default(cuid())
+  transcriptionId String   @unique
+  transcription  Transcription @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
+  text           String   @db.Text
+  createdAt      DateTime @default(now())
+  
+  soapNote       SoapNote?
+}
+
+model SoapNote {
+  id          String   @id @default(cuid())
+  recordingId String   @unique
+  recording   Recording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  summaryId   String   @unique
+  summary     Summary  @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+  content     String   @db.Text
+  filePath    String?
+  createdAt   DateTime @default(now())
+}
+
